@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: >-
+  How do you know you are compliant? AWS Config will tell you when you deployed your infrastructure! Isn't it better to prevent non-compliant resources to be deployed in the first place? Let's see how we can use preventive and detective tools together.
+
+Resources:
+
+  S3BucketRule:
+    Type: AWS::Config::ConfigRule
+    Properties:
+      Description: Validate that the S3 bucket has KMS encryption enabled by default.
+      Scope:
+        ComplianceResourceTypes: [ "AWS::S3::Bucket" ]
+      Source:
+        SourceDetails:
+          - EventSource: aws.config
+            MessageType: ConfigurationItemChangeNotification
+          - EventSource: aws.config
+            MessageType: OversizedConfigurationItemChangeNotification
+        Owner: CUSTOM_POLICY
+        CustomPolicyDetails:
+          EnableDebugLogDelivery: true
+          PolicyRuntime: guard-2.x.x
+          PolicyText: "" # aws-cfn-update will inject the content of ./src/rules/S3Bucket.guard here.
+
+  # Test Resource
+  #
+  # Step 1: Deploy without any configuration (Comment out all properties, will result in non-compliant resource)
+  # Step 2: Deploy with wrong configuration  (Return the properties, but use the AES256 SSEAlgorithm, will result in non-compliant resource)
+  # Step 3: Deploy with correct configuration (Use the  aws:kms SSEAlgorithm, will result in a compliant resource)
+  NonCompliantBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              # SSEAlgorithm: AES256

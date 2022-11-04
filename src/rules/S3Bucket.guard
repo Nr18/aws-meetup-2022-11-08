@@ -1,0 +1,23 @@
+let buckets = Resources.*[ Type == "AWS::S3::Bucket" ]
+
+# CloudFormation Rule
+rule cloudformation_kms_encryption when %buckets !empty {
+  %buckets.Properties {
+    BucketEncryption.ServerSideEncryptionConfiguration[*] {
+      ServerSideEncryptionByDefault.SSEAlgorithm == "aws:kms" << S3 buckets require aws:kms encryption at rest >>
+    }
+  }
+}
+
+# AWS Config Rule
+rule config_kms_encryption when resourceType == "AWS::S3::Bucket" {
+  supplementaryConfiguration {
+    ServerSideEncryptionConfiguration exists << Server Side Encryption is not configured >>
+
+    when ServerSideEncryptionConfiguration exists {
+      ServerSideEncryptionConfiguration.rules[*] {
+        applyServerSideEncryptionByDefault.sseAlgorithm == "aws:kms" << aws:kms Server Side Encryption is required at rest >>
+      }
+    }
+  }
+}

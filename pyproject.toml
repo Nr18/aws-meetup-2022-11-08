@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "aws-meetup-2022-11-08"
+version = "0.1.0"
+description = "How do you know you are compliant? AWS Config will tell you when you deployed your infrastructure! Isn't it better to prevent non-compliant resources to be deployed in the first place? Let's see how we can use preventive and detective tools together."
+authors = ["Joris Conijn <jorisconijn@binx.io>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+aws-sam-cli = "^1.64.0"
+aws-cfn-update = "^0.7.6"
+cfn-guard-test = "^0.5.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

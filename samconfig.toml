@@ -1,0 +1,9 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "aws-meetup-2022-11-08"
+s3_prefix = "aws-meetup-2022-11-08"
+region = "eu-west-1"
+capabilities = "CAPABILITY_IAM"
+image_repositories = []

@@ -1,0 +1,139 @@
+---
+- name: "CloudFormation: Skip if not present"
+  input:
+     Resources: {}
+  expectations:
+    rules:
+      cloudformation_kms_encryption: SKIP
+      config_kms_encryption: SKIP
+
+- name: "CloudFormation: Simple S3 definition"
+  input:
+     Resources:
+       MyBucket:
+         Type: AWS::S3::Bucket
+  expectations:
+    rules:
+      cloudformation_kms_encryption: FAIL
+      config_kms_encryption: SKIP
+
+- name: "CloudFormation: Bucket with KMS Encryption"
+  input:
+     Resources:
+       MyBucket:
+         Type: AWS::S3::Bucket
+         Properties:
+           BucketEncryption:
+             ServerSideEncryptionConfiguration:
+               - ServerSideEncryptionByDefault:
+                   SSEAlgorithm: aws:kms
+  expectations:
+    rules:
+      cloudformation_kms_encryption: PASS
+      config_kms_encryption: SKIP
+
+- name: "CloudFormation: Bucket with AES-256 Encryption"
+  input:
+     Resources:
+       MyBucket:
+         Type: AWS::S3::Bucket
+         Properties:
+           BucketEncryption:
+             ServerSideEncryptionConfiguration:
+               - ServerSideEncryptionByDefault:
+                   SSEAlgorithm: AES-256
+  expectations:
+    rules:
+      cloudformation_kms_encryption: FAIL
+      config_kms_encryption: SKIP
+
+- name: "CloudFormation: Bucket with UNKNOWN Encryption"
+  input:
+     Resources:
+       MyBucket:
+         Type: AWS::S3::Bucket
+         Properties:
+           BucketEncryption:
+             ServerSideEncryptionConfiguration:
+               - ServerSideEncryptionByDefault:
+                   SSEAlgorithm: UNKNOWN
+  expectations:
+    rules:
+      cloudformation_kms_encryption: FAIL
+      config_kms_encryption: SKIP
+
+- name: "Config: No supplementaryConfiguration"
+  input: {}
+  expectations:
+    rules:
+      cloudformation_kms_encryption: SKIP
+      config_kms_encryption: SKIP
+
+- name: "Config: No ServerSideEncryptionConfiguration"
+  input:
+    resourceType: AWS::S3::Bucket
+    supplementaryConfiguration: {}
+  expectations:
+    rules:
+      cloudformation_kms_encryption: SKIP
+      config_kms_encryption: FAIL
+
+- name: "Config: ServerSideEncryptionConfiguration no content"
+  input:
+    resourceType: AWS::S3::Bucket
+    supplementaryConfiguration:
+      ServerSideEncryptionConfiguration: {}
+  expectations:
+    rules:
+      cloudformation_kms_encryption: SKIP
+      config_kms_encryption: FAIL
+
+- name: "Config: ServerSideEncryptionConfiguration no rules"
+  input:
+    resourceType: AWS::S3::Bucket
+    supplementaryConfiguration:
+      ServerSideEncryptionConfiguration:
+        rules: []
+  expectations:
+    rules:
+      cloudformation_kms_encryption: SKIP
+      config_kms_encryption: FAIL
+
+- name: "Config: ServerSideEncryptionConfiguration with AES256 encryption"
+  input:
+    resourceType: AWS::S3::Bucket
+    supplementaryConfiguration:
+      ServerSideEncryptionConfiguration:
+        rules:
+          - applyServerSideEncryptionByDefault:
+              sseAlgorithm: AES256
+  expectations:
+    rules:
+      cloudformation_kms_encryption: SKIP
+      config_kms_encryption: FAIL
+
+- name: "Config: ServerSideEncryptionConfiguration with aws:kms encryption"
+  input:
+    resourceType: AWS::S3::Bucket
+    supplementaryConfiguration:
+      ServerSideEncryptionConfiguration:
+        rules:
+          - applyServerSideEncryptionByDefault:
+              sseAlgorithm: aws:kms
+  expectations:
+    rules:
+      cloudformation_kms_encryption: SKIP
+      config_kms_encryption: PASS
+
+- name: "Config: ServerSideEncryptionConfiguration with UNKNOWN encryption"
+  input:
+    resourceType: AWS::S3::Bucket
+    supplementaryConfiguration:
+      ServerSideEncryptionConfiguration:
+        rules:
+          - applyServerSideEncryptionByDefault:
+              sseAlgorithm: UNKNOWN
+  expectations:
+    rules:
+      cloudformation_kms_encryption: SKIP
+      config_kms_encryption: FAIL
